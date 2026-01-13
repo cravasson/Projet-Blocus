@@ -3,6 +3,7 @@ import pickle
 import os
 import sys
 
+
 # ====================================================================================================
 #                             Comment lancer le jeu : 
 # 1- Ouvrir autant de terminal que de joueurs dans le dossier des fichiers .py 
