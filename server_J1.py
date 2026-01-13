@@ -3,8 +3,6 @@ import pickle
 import os
 import sys
 
-
-
 # ====================================================================================================
 #                             Comment lancer le jeu : 
 # 1- Ouvrir autant de terminal que de joueurs dans le dossier des fichiers .py 
@@ -14,10 +12,6 @@ import sys
 # & "$env:LOCALAPPDATA\Microsoft\WindowsApps\python3.11.exe" client_J3.py    3 joueurs  (Terminal3)
 # & "$env:LOCALAPPDATA\Microsoft\WindowsApps\python3.11.exe" client_J4.py    4 joueurs  (Terminal4)
 # ====================================================================================================
-
-
-
-
 
 # =============================================================================
 # 1. IMPORTS
@@ -150,6 +144,9 @@ async def boucle_jeu():
     
     # Compteur pour savoir si TOUT LE MONDE est bloqué (4 passes d'affilée)
     compteur_passes = 0
+    
+    # NOUVEAU : Compteur global de tours
+    nb_tours_global = 1
 
     while True:
         # VERIFICATION DE FIN DE PARTIE
@@ -177,7 +174,7 @@ async def boucle_jeu():
         else:
             qui_controle = tour_index
 
-        print(f"\n--- TOUR DE : {joueur_actuel.nom} ({joueur_actuel.emoji}) ---")
+        print(f"\n--- TOUR {nb_tours_global} | DE : {joueur_actuel.nom} ({joueur_actuel.emoji}) ---")
         if info_txt: print(info_txt)
 
         # SERVEUR JOUE
@@ -185,7 +182,8 @@ async def boucle_jeu():
             choix_valide = False
             msg = f"A toi de jouer {joueur_actuel.nom} !"
             while not choix_valide:
-                choix = bk.saisir_choix_interactif(grille, joueur_actuel, msg, info_txt)
+                # Ajout de numero_tour
+                choix = bk.saisir_choix_interactif(grille, joueur_actuel, msg, info_txt, numero_tour=nb_tours_global)
                 
                 # S'il passe son tour (99 ou Echap)
                 if choix == -1 or choix == 99: 
@@ -195,7 +193,8 @@ async def boucle_jeu():
                 
                 # Jouer une pièce
                 elif 0 <= choix < len(joueur_actuel.main) and not joueur_actuel.main[choix].posee:
-                    if bk.deplacer_et_poser(grille, joueur_actuel.main[choix], joueur_actuel, info_txt):
+                    # Ajout de numero_tour
+                    if bk.deplacer_et_poser(grille, joueur_actuel.main[choix], joueur_actuel, info_txt, numero_tour=nb_tours_global):
                         # Pièce posée -> On remet le compteur de passes à 0
                         compteur_passes = 0
                         choix_valide = True
@@ -213,7 +212,8 @@ async def boucle_jeu():
                     # Pour détecter si le client a passé, on compte ses pièces posées AVANT
                     nb_pieces_avant = sum(1 for p in joueur_actuel.main if p.posee)
                     
-                    data_pack = (grille, joueur_actuel, info_txt)
+                    # MODIFICATION IMPORTANTE : ON ENVOIE 4 ELEMENTS MAINTENANT (AVEC LE TOUR)
+                    data_pack = (grille, joueur_actuel, info_txt, nb_tours_global)
                     writer.write(pickle.dumps(data_pack))
                     await writer.drain()
                     
@@ -245,11 +245,16 @@ async def boucle_jeu():
                     break
 
         tour_index = (tour_index + 1) % 4
+        
+        # SI LE TOUR INDEX REVIENT A 0 (C'est de nouveau au Bleu), ON INCREMENTE LE TOUR GLOBAL
+        if tour_index == 0:
+            nb_tours_global += 1
     
     # === FIN DE PARTIE ===
     os.system('cls' if os.name == 'nt' else 'clear')
     print("\n" + "="*50)
     print("       🏁  FIN DE LA PARTIE  🏁       ")
+    print(f"       Nombre total de tours : {nb_tours_global-1}")
     print("="*50 + "\n")
     
     # Calcul des scores
@@ -277,7 +282,7 @@ async def boucle_jeu():
         print(f" {medaille} {nom} : {score} points")
         
     print("\nMerci d'avoir joué !!!\n" \
-    "\nRéalisé par Celia et José\n")
+    "\nRéalisé par Célia et José\n")
     print("="*50)
     input("Appuyez sur Entrée pour fermer...")
     sys.exit()

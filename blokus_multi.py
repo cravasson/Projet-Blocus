@@ -2,7 +2,6 @@ import os
 import msvcrt
 import copy
 
-
 # ====================================================================================================
 #                             Comment lancer le jeu : 
 # 1- Ouvrir autant de terminal que de joueurs dans le dossier des fichiers .py 
@@ -12,7 +11,6 @@ import copy
 # & "$env:LOCALAPPDATA\Microsoft\WindowsApps\python3.11.exe" client_J3.py    3 joueurs  (Terminal3)
 # & "$env:LOCALAPPDATA\Microsoft\WindowsApps\python3.11.exe" client_J4.py    4 joueurs  (Terminal4)
 # ====================================================================================================
-
 
 # =============================================================================
 # 1. CONFIGURATION ET CONSTANTES
@@ -117,10 +115,19 @@ def preparer_rendu_grille(grille_base, piece=None, pl=0, pc=0, joueur=None):
 # 4. GESTION DE L'INTERFACE
 # =============================================================================
 
-def afficher_interface_complete(grille, joueur, piece_active=None, l=0, c=0, mode_selection=True, message_erreur="", saisie_en_cours="", info_tour=""):
+# AJOUT DE numero_tour
+def afficher_interface_complete(grille, joueur, piece_active=None, l=0, c=0, mode_selection=True, message_erreur="", saisie_en_cours="", info_tour="", numero_tour=1):
     os.system('cls' if os.name == 'nt' else 'clear')
     lignes_g = preparer_rendu_grille(grille, piece_active, l, c, joueur)
-    lignes_droite = ["", f" {info_tour}", f" C'EST AU TOUR DE : {joueur.nom} {joueur.emoji}", " " + "-" * 30]
+    
+    # AJOUT DE L'AFFICHAGE DU TOUR
+    lignes_droite = [
+        "", 
+        f" 🔄 TOUR N° {numero_tour}", 
+        f" {info_tour}", 
+        f" C'EST AU TOUR DE : {joueur.nom} {joueur.emoji}", 
+        " " + "-" * 30
+    ]
     
     if mode_selection:
         lignes_droite.append(" SÉLECTION DE LA PIECE")
@@ -150,10 +157,11 @@ def afficher_interface_complete(grille, joueur, piece_active=None, l=0, c=0, mod
 # 5. LOGIQUE DE JEU
 # =============================================================================
 
-def saisir_choix_interactif(grille, joueur, message_erreur, info_tour=""):
+# AJOUT DE numero_tour
+def saisir_choix_interactif(grille, joueur, message_erreur, info_tour="", numero_tour=1):
     buffer = ""
     while True:
-        afficher_interface_complete(grille, joueur, mode_selection=True, message_erreur=message_erreur, saisie_en_cours=buffer, info_tour=info_tour)
+        afficher_interface_complete(grille, joueur, mode_selection=True, message_erreur=message_erreur, saisie_en_cours=buffer, info_tour=info_tour, numero_tour=numero_tour)
         touche = msvcrt.getch()
         if touche == b'\r': 
             return int(buffer) if buffer.isdigit() else -1
@@ -189,10 +197,11 @@ def poser_piece(grille, piece, l, c, joueur):
     piece.posee = True
     joueur.premier_tour = False
 
-def deplacer_et_poser(grille, piece, joueur, info_tour=""):
+# AJOUT DE numero_tour
+def deplacer_et_poser(grille, piece, joueur, info_tour="", numero_tour=1):
     l, c, msg_err = 0, 0, ""
     while True:
-        afficher_interface_complete(grille, joueur, piece, l, c, mode_selection=False, message_erreur=msg_err, info_tour=info_tour)
+        afficher_interface_complete(grille, joueur, piece, l, c, mode_selection=False, message_erreur=msg_err, info_tour=info_tour, numero_tour=numero_tour)
         msg_err = "" 
         touche = msvcrt.getch()
         if touche == b'\xe0': 

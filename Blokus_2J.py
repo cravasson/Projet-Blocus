@@ -132,13 +132,16 @@ def preparer_rendu_grille(grille_base, piece=None, pl=0, pc=0, joueur=None):
 # 4. INTERFACE UTILISATEUR (SPLIT SCREEN)
 # =============================================================================
 
-def afficher_interface_complete(grille, joueur, piece_active=None, l=0, c=0, mode_selection=True, message_erreur="", saisie_en_cours=""):
+# AJOUT DE numero_tour
+def afficher_interface_complete(grille, joueur, piece_active=None, l=0, c=0, mode_selection=True, message_erreur="", saisie_en_cours="", numero_tour=1):
     os.system('cls' if os.name == 'nt' else 'clear')
     
     lignes_g = preparer_rendu_grille(grille, piece_active, l, c, joueur)
     
+    # AFFICHAGE DU TOUR
     lignes_droite = []
     lignes_droite.append("")
+    lignes_droite.append(f" 🔄 TOUR N° {numero_tour}")
     lignes_droite.append(f" JOUEUR ACTUEL : {joueur.nom} {joueur.emoji}")
     lignes_droite.append(" " + "-" * 30)
     
@@ -184,10 +187,10 @@ def afficher_interface_complete(grille, joueur, piece_active=None, l=0, c=0, mod
 # 5. LOGIQUE DU JEU (RÈGLES ET CONTRÔLES)
 # =============================================================================
 
-def saisir_choix_interactif(grille, joueur, message_erreur):
+def saisir_choix_interactif(grille, joueur, message_erreur, numero_tour):
     buffer = ""
     while True:
-        afficher_interface_complete(grille, joueur, mode_selection=True, message_erreur=message_erreur, saisie_en_cours=buffer)
+        afficher_interface_complete(grille, joueur, mode_selection=True, message_erreur=message_erreur, saisie_en_cours=buffer, numero_tour=numero_tour)
         
         touche = msvcrt.getch()
         
@@ -233,11 +236,11 @@ def poser_piece(grille, piece, l, c, joueur):
     piece.posee = True
     joueur.premier_tour = False
 
-def deplacer_et_poser(grille, piece, joueur):
+def deplacer_et_poser(grille, piece, joueur, numero_tour):
     l, c = 0, 0
     msg_erreur = ""
     while True:
-        afficher_interface_complete(grille, joueur, piece, l, c, mode_selection=False, message_erreur=msg_erreur)
+        afficher_interface_complete(grille, joueur, piece, l, c, mode_selection=False, message_erreur=msg_erreur, numero_tour=numero_tour)
         msg_erreur = "" 
         
         touche = msvcrt.getch()
@@ -348,6 +351,9 @@ if __name__ == "__main__":
     
     compteur_passes = 0
     jeu_termine = False
+    
+    # NOUVEAU : Compteur global de tours
+    nb_tours_global = 1
 
     # 3. Boucle de jeu de test
     while not jeu_termine:
@@ -362,7 +368,7 @@ if __name__ == "__main__":
             msg_err = ""
             
             while not choix_valide:
-                choix = saisir_choix_interactif(grille, joueur, msg_err)
+                choix = saisir_choix_interactif(grille, joueur, msg_err, nb_tours_global)
                 
                 # Code retour -1 ou 99 = Passer son tour
                 if choix == -1 or choix == 99:
@@ -376,18 +382,23 @@ if __name__ == "__main__":
                     else:
                         piece = joueur.main[choix]
                         # Lancement du mode déplacement
-                        if deplacer_et_poser(grille, piece, joueur):
+                        if deplacer_et_poser(grille, piece, joueur, nb_tours_global):
                             compteur_passes = 0 # On a joué, on reset le compteur
                             choix_valide = True
                         else:
                             msg_err = "Placement annulé."
                 else:
                     msg_err = "Numéro invalide."
+        
+        # Si le jeu n'est pas fini après un tour de table complet (les 4 couleurs)
+        if not jeu_termine:
+            nb_tours_global += 1
 
     # === FIN DE PARTIE ===
     os.system('cls' if os.name == 'nt' else 'clear')
     print("\n" + "="*50)
     print("       🏁  FIN DE LA PARTIE (2 Joueurs)  🏁       ")
+    print(f"       Nombre total de tours : {nb_tours_global-1}")
     print("="*50 + "\n")
     
     scores_finaux = {}
@@ -415,6 +426,6 @@ if __name__ == "__main__":
         print(f" {medaille} {nom} : {score} points")
         
     print("\nMerci d'avoir joué !!!\n" \
-    "\nRéalisé par Celia et José \n")
+    "\nRéalisé par Célia et José")
     print("="*50)
     input("Appuyez sur Entrée pour quitter...")

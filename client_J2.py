@@ -25,8 +25,8 @@ async def main():
             data = await reader.read(100000)
             if not data: break
             
-            # 2. Réception : (Grille, Mon_Joueur, Info_Tour)
-            grille, mon_joueur, info_txt = pickle.loads(data)
+            # 2. Réception : (Grille, Mon_Joueur, Info_Tour, NUMERO_TOUR)
+            grille, mon_joueur, info_txt, numero_tour = pickle.loads(data)
             
             # 3. Phase de jeu interactif
             os.system('cls' if os.name == 'nt' else 'clear')
@@ -37,14 +37,16 @@ async def main():
             msg = "A toi !"
             
             while not choix_ok:
-                choix = bk.saisir_choix_interactif(grille, mon_joueur, msg, info_txt)
+                # Ajout de numero_tour
+                choix = bk.saisir_choix_interactif(grille, mon_joueur, msg, info_txt, numero_tour=numero_tour)
                 
                 if choix == -1 or choix == 99:
                     print("Tour passé.")
                     choix_ok = True
                 elif 0 <= choix < len(mon_joueur.main) and not mon_joueur.main[choix].posee:
                     piece = mon_joueur.main[choix]
-                    if bk.deplacer_et_poser(grille, piece, mon_joueur, info_txt):
+                    # Ajout de numero_tour
+                    if bk.deplacer_et_poser(grille, piece, mon_joueur, info_txt, numero_tour=numero_tour):
                         choix_ok = True
                     else: msg = "Placement invalide !"
                 else: msg = "Pièce invalide !"
